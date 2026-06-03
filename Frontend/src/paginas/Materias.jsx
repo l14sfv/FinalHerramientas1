@@ -8,14 +8,20 @@ export default function Materias() {
   const { addToast } = useToast();
   const [materias, setMaterias] = useState([]);
   const [nombre, setNombre] = useState('');
+  const [descripcion, setDescripcion] = useState('');
   const [cargando, setCargando] = useState(true);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
+  const [editandoId, setEditandoId] = useState(null);
+  const [editNombre, setEditNombre] = useState('');
+  const [editDescripcion, setEditDescripcion] = useState('');
+  const [editLoading, setEditLoading] = useState(false);
 
   const puedeCrear = user && (user.role === 'ADMIN' || user.role === 'TUTOR');
 
   const cargarMaterias = () => {
     setCargando(true);
+    setError('');
     api
       .get('/subjects')
       .then((res) => setMaterias(res.data))
@@ -32,11 +38,17 @@ export default function Materias() {
     if (!puedeCrear) return;
     setEnviando(true);
     setError('');
+
     try {
-      const { data } = await api.post('/subjects', { name: nombre.trim() });
-      setMaterias((prev) => [...prev, data]);
+      const { data } = await api.post('/subjects', {
+        name: nombre.trim(),
+        description: descripcion.trim() || undefined,
+      });
+      const materia = data.materia || data;
+      setMaterias((prev) => [...prev, materia]);
       setNombre('');
-      addToast(`Materia "${data.name}" creada correctamente.`, 'success');
+      setDescripcion('');
+      addToast(`Materia "${materia.name}" creada correctamente.`, 'success');
     } catch (err) {
       console.error(err);
       const msg = err.response?.data?.message || 'No se pudo crear la materia.';
@@ -44,6 +56,41 @@ export default function Materias() {
       addToast(msg, 'error');
     } finally {
       setEnviando(false);
+    }
+  };
+
+  const iniciarEdicion = (materia) => {
+    setEditandoId(materia.id);
+    setEditNombre(materia.name);
+    setEditDescripcion(materia.description || '');
+  };
+
+  const cancelarEdicion = () => {
+    setEditandoId(null);
+    setEditNombre('');
+    setEditDescripcion('');
+  };
+
+  const guardarEdicion = async (id) => {
+    if (!editNombre.trim()) return;
+    setEditLoading(true);
+    setError('');
+    try {
+      const { data } = await api.put(`/subjects/${id}`, {
+        name: editNombre.trim(),
+        description: editDescripcion.trim() || null,
+      });
+      const materiaActualizada = data.materia || data;
+      setMaterias((prev) => prev.map((m) => (m.id === materiaActualizada.id ? materiaActualizada : m)));
+      addToast(`Materia "${materiaActualizada.name}" actualizada correctamente.`, 'success');
+      cancelarEdicion();
+    } catch (err) {
+      console.error(err);
+      const msg = err.response?.data?.message || 'No se pudo actualizar la materia.';
+      setError(msg);
+      addToast(msg, 'error');
+    } finally {
+      setEditLoading(false);
     }
   };
 
@@ -75,6 +122,16 @@ export default function Materias() {
                 required
               />
             </div>
+            <div className="form-group">
+              <label htmlFor="descripcion-materia">Descripción</label>
+              <textarea
+                id="descripcion-materia"
+                className="textarea"
+                value={descripcion}
+                onChange={(e) => setDescripcion(e.target.value)}
+                placeholder="Describe brevemente la materia"
+              />
+            </div>
             <button type="submit" className="btn btn-primary" disabled={enviando}>
               {enviando ? 'Creando…' : 'Crear materia'}
             </button>
@@ -104,10 +161,60 @@ export default function Materias() {
 
       {!cargando && materias.length > 0 && (
         <div className="card-grid">
-          {materias.map((m) => (
-            <article key={m.id} className="card">
-              <div className="card-title">{m.name}</div>
-              <p className="card-meta">ID: {m.id}</p>
+          {materias.map((materia) => (
+            <article key={materia.id} className="card">
+              {editandoId === materia.id ? (
+                <>
+                  <div className="form-group">
+                    <label htmlFor={`edit-name-${materia.id}`}>Nombre</label>
+                    <input
+                      id={`edit-name-${materia.id}`}
+                      className="input"
+                      type="text"
+                      value={editNombre}
+                      onChange={(e) => setEditNombre(e.target.value)}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor={`edit-description-${materia.id}`}>Descripción</label>
+                    <textarea
+                      id={`edit-description-${materia.id}`}
+                      className="textarea"
+                      value={editDescripcion}
+                      onChange={(e) => setEditDescripcion(e.target.value)}
+                    />
+                  </div>
+                  <div className="card-actions">
+                    <button className="btn btn-secondary" type="button" onClick={cancelarEdicion} disabled={editLoading}>
+                      Cancelar
+                    </button>
+                    <button
+                      className="btn btn-primary"
+                      type="button"
+                      onClick={() => guardarEdicion(materia.id)}
+                      disabled={editLoading}
+                    >
+                      {editLoading ? 'Guardando…' : 'Guardar'}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="card-title">{materia.name}</div>
+                  {materia.description ? (
+                    <p className="card-meta">{materia.description}</p>
+                  ) : (
+                    <p className="card-meta">Sin descripción</p>
+                  )}
+                  {puedeCrear && (
+                    <div className="card-actions">
+                      <button className="btn btn-secondary" type="button" onClick={() => iniciarEdicion(materia)}>
+                        Editar
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
             </article>
           ))}
         </div>

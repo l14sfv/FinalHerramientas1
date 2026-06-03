@@ -9,15 +9,43 @@ export default function DetalleTutor() {
   const { id } = useParams();
   const { user } = useAuth();
   const [tutor, setTutor] = useState(null);
+  const [subjects, setSubjects] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [reserva, setReserva] = useState({ subjectId: '', scheduledAt: '', notes: '' });
   const [errorReserva, setErrorReserva] = useState('');
   const [exitoReserva, setExitoReserva] = useState(false);
   const [enviando, setEnviando] = useState(false);
+  const [asignacion, setAsignacion] = useState({ subjectId: '', hourlyRate: '' });
+  const [assignError, setAssignError] = useState('');
+  const [assignSuccess, setAssignSuccess] = useState('');
+  const [assignLoading, setAssignLoading] = useState(false);
+  const [removeLoading, setRemoveLoading] = useState(false);
+
+  const cargarTutor = () => {
+    setCargando(true);
+    api.get(`/tutors/${id}`)
+      .then((res) => setTutor(res.data))
+      .catch(console.error)
+      .finally(() => setCargando(false));
+  };
 
   useEffect(() => {
-    api.get(`/tutors/${id}`).then((res) => setTutor(res.data)).catch(console.error).finally(() => setCargando(false));
+    cargarTutor();
+    api.get('/subjects').then((res) => setSubjects(res.data)).catch(console.error);
   }, [id]);
+
+  const puedeAsignar =
+    user &&
+    (user.role === 'ADMIN' || (user.role === 'TUTOR' && String(user.id) === String(id)));
+  const puedeReservar = user?.role === 'STUDENT';
+
+  const materiaSeleccionada = tutor?.subjects?.find(
+    (s) => String(s.id) === String(reserva.subjectId)
+  );
+
+  const materiasDisponibles = subjects.filter(
+    (subject) => !tutor?.subjects?.some((ts) => ts.id === subject.id)
+  );
 
   const handleChange = (e) => {
     setReserva((r) => ({ ...r, [e.target.name]: e.target.value }));
@@ -45,6 +73,47 @@ export default function DetalleTutor() {
     }
   };
 
+  const handleAsignacionChange = (e) => {
+    setAsignacion((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleAsignar = async (e) => {
+    e.preventDefault();
+    setAssignError('');
+    setAssignSuccess('');
+    setAssignLoading(true);
+    try {
+      await api.post(`/tutors/${id}/subjects`, {
+        subjectId: Number(asignacion.subjectId),
+        hourlyRate: Number(asignacion.hourlyRate),
+      });
+      setAssignSuccess('Materia asignada correctamente.');
+      setAsignacion({ subjectId: '', hourlyRate: '' });
+      cargarTutor();
+    } catch (err) {
+      console.error(err);
+      setAssignError(err.response?.data?.message || 'No se pudo asignar la materia.');
+    } finally {
+      setAssignLoading(false);
+    }
+  };
+
+  const handleRemoverMateria = async (subjectId) => {
+    setAssignError('');
+    setAssignSuccess('');
+    setRemoveLoading(true);
+    try {
+      await api.delete(`/tutors/${id}/subjects/${subjectId}`);
+      setAssignSuccess('Materia removida correctamente.');
+      cargarTutor();
+    } catch (err) {
+      console.error(err);
+      setAssignError(err.response?.data?.message || 'No se pudo remover la materia.');
+    } finally {
+      setRemoveLoading(false);
+    }
+  };
+
   if (cargando) {
     return (
       <div className="loading-state">
@@ -63,8 +132,7 @@ export default function DetalleTutor() {
     );
   }
 
-  const puedeReservar = user?.role === 'STUDENT';
-  const materiaSeleccionada = tutor.subjects?.find((s) => String(s.id) === String(reserva.subjectId));
+
   const mensajeWhatsApp = buildTutorWhatsAppMessage({
     studentName: user?.name,
     tutorName: tutor.name,
@@ -88,10 +156,25 @@ export default function DetalleTutor() {
             <ul className="subject-list">
               {tutor.subjects.map((ts) => (
                 <li key={ts.id}>
-                  <span>{ts.name}</span>
-                  {ts.TutorSubject && (
-                    <span className="subject-rate">${ts.TutorSubject.hourlyRate}/hora</span>
-                  )}
+                  <div>
+                    <strong>{ts.name}</strong>
+                    {ts.description && <p className="subject-description">{ts.description}</p>}
+                  </div>
+                  <div className="subject-meta">
+                    {ts.TutorSubject && (
+                      <span className="subject-rate">${ts.TutorSubject.hourlyRate}/hora</span>
+                    )}
+                    {puedeAsignar && (
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-small"
+                        onClick={() => handleRemoverMateria(ts.id)}
+                        disabled={removeLoading}
+                      >
+                        {removeLoading ? 'Removiendo…' : 'Remover'}
+                      </button>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>
@@ -127,6 +210,57 @@ export default function DetalleTutor() {
               </div>
               <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={enviando}>
                 {enviando ? 'Agendando…' : 'Solicitar sesión'}
+              </button>
+            </form>
+          </aside>
+        )}
+
+        {puedeAsignar && (
+          <aside className="card">
+            <h2>Asignar materia</h2>
+            {assignSuccess && <div className="alert alert-success">{assignSuccess}</div>}
+            {assignError && <div className="alert alert-error">{assignError}</div>}
+            <form onSubmit={handleAsignar}>
+              <div className="form-group">
+                <label htmlFor="assign-subject">Materia</label>
+                <select
+                  id="assign-subject"
+                  className="select"
+                  name="subjectId"
+                  value={asignacion.subjectId}
+                  onChange={handleAsignacionChange}
+                  required
+                >
+                  <option value="">Selecciona una materia</option>
+                  {materiasDisponibles.length > 0 ? (
+                    materiasDisponibles.map((subject) => (
+                      <option key={subject.id} value={subject.id}>
+                        {subject.name}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="" disabled>
+                      No hay materias disponibles para asignar
+                    </option>
+                  )}
+                </select>
+              </div>
+              <div className="form-group">
+                <label htmlFor="hourlyRate">Precio por hora</label>
+                <input
+                  id="hourlyRate"
+                  className="input"
+                  type="number"
+                  step="0.01"
+                  name="hourlyRate"
+                  value={asignacion.hourlyRate}
+                  onChange={handleAsignacionChange}
+                  placeholder="Ej. 25"
+                  required
+                />
+              </div>
+              <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={assignLoading || materiasDisponibles.length === 0}>
+                {assignLoading ? 'Asignando…' : 'Asignar materia'}
               </button>
             </form>
           </aside>
