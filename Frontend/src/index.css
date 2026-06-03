@@ -165,7 +165,20 @@ p { margin: 0 0 1rem; }
   color: var(--accent);
 }
 
-.navbar-brand-icon {
+.navbar-logo {
+  height: 50px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.footer-logo {
+  height: 38px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+/* .navbar-brand-icon {
   width: 32px;
   height: 32px;
   background: linear-gradient(135deg, var(--accent), #a855f7);
@@ -175,7 +188,7 @@ p { margin: 0 0 1rem; }
   justify-content: center;
   color: white;
   font-size: 0.9rem;
-}
+} */
 
 .navbar-links {
   display: flex;

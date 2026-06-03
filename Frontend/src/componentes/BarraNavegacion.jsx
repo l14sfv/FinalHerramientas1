@@ -16,8 +16,8 @@ export default function BarraNavegacion() {
     <header className="navbar">
       <div className="navbar-inner">
         <Link to="/" className="navbar-brand">
-          <span className="navbar-brand-icon" aria-hidden="true">T</span>
-          Tutoría
+          <span><img className="navbar-logo" src="../public/logo.png" alt="NexTutor" /></span>
+          NexTutor
         </Link>
 
         <nav className="navbar-links" aria-label="Principal">

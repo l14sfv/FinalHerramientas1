@@ -16,8 +16,8 @@ export default function PiePagina() {
       <div className="site-footer-inner">
         <div className="site-footer-brand">
           <Link to="/" className="navbar-brand">
-            <span className="navbar-brand-icon" aria-hidden="true">T</span>
-            Tutoría
+            <span><img className="footer-logo" src="../public/logo.png" alt="NexTutor" /></span>
+            NexTutor
           </Link>
           <p className="site-footer-tagline">
             Conecta estudiantes y tutores. Agenda sesiones y comunícate al instante.
@@ -56,14 +56,14 @@ export default function PiePagina() {
                 Soporte por WhatsApp
               </a>
             ) : (
-              <span className="card-meta">Soporte: configura VITE_WHATSAPP_SUPPORT</span>
+              <span className="card-meta">ORT</span>
             )}
           </div>
         </nav>
       </div>
 
       <div className="site-footer-bottom">
-        <p>© {anio} Plataforma de Tutorías. Todos los derechos reservados.</p>
+        <p>© {anio} NexTutor. Todos los derechos reservados.</p>
       </div>
     </footer>
   );
