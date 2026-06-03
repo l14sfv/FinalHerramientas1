@@ -35,7 +35,7 @@ Arqfinal/
 Crea la base de datos en MySQL:
 
 ```sql
-CREATE DATABASE tutoring_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE Tutores_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
 ### 2. Backend
@@ -71,7 +71,7 @@ La app queda en `http://localhost:5173` (puerto por defecto de Vite).
 | `PORT`           | Puerto del servidor                  | `4000`         |
 | `DB_HOST`        | Host MySQL                           | `127.0.0.1`    |
 | `DB_PORT`        | Puerto MySQL                         | `3306`         |
-| `DB_NAME`        | Nombre de la BD                      | `tutoring_db`  |
+| `DB_NAME`        | Nombre de la BD                      | `Tutores_db`   |
 | `DB_USER`        | Usuario MySQL                        | `root`         |
 | `DB_PASSWORD`    | Contraseña MySQL                     | `****`         |
 | `JWT_SECRET`     | Secreto para tokens JWT              | cadena larga   |
@@ -119,6 +119,8 @@ Prefijo: `/api`
 | GET    | `/sessions/mine`            | Sí   | Sesiones del usuario           |
 | PATCH  | `/sessions/:id/status`      | Sí   | Cambiar estado (tutor/admin)   |
 
+| GET    | `/health`                   | No   | Estado de BD y conteo de usuarios |
+
 ## Roles y flujo
 
 - **Estudiante**: busca tutores, agenda sesiones, escribe por WhatsApp al tutor.
@@ -127,17 +129,71 @@ Prefijo: `/api`
 
 Estados de sesión: `PENDING`, `CONFIRMED`, `CANCELLED`, `COMPLETED`.
 
-## Modelo de datos
+## Estructura del código
 
-- **User** — name, email, password, role, phone (WhatsApp)
-- **Subject** — materias académicas
-- **TutorSubject** — relación tutor–materia con `hourlyRate`
-- **Session** — studentId, tutorId, subjectId, scheduledAt, status, notes
+### Backend (`Backend/src/`)
+
+```
+src/
+├── app.js
+├── config/baseDatos.js
+├── modelos/          Usuario, Materia, TutorMateria, Sesion
+├── controladores/    autenticacion, materias, tutores, sesiones, salud
+├── rutas/            autenticacion, materias, tutores, sesiones
+└── middleware/       autenticacion, roles
+```
+
+### Frontend (`Frontend/src/`)
+
+```
+src/
+├── paginas/          Inicio, IniciarSesion, Registro, Tutores, DetalleTutor, Sesiones
+├── componentes/      BarraNavegacion, PiePagina, RutaProtegida, MensajeWhatsApp
+├── contextos/        ContextoAutenticacion, ContextoNotificaciones
+├── utilidades/       etiquetas, whatsapp
+└── api/cliente.js
+```
+
+Las rutas URL del frontend siguen en inglés (`/login`, `/tutors`) por compatibilidad; los archivos fuente están en español.
+
+## Modelo de datos (esquema en español)
+
+| Tabla MySQL       | Uso                                      |
+|-------------------|------------------------------------------|
+| `usuarios`        | Estudiantes, tutores y admins (`rol`)    |
+| `materias`        | Asignaturas                              |
+| `tutor_materias`  | Materias del tutor + `precio_hora`       |
+| `sesiones`        | Citas entre estudiante y tutor           |
+
+No hay tabla `tutores` separada: un tutor es un registro en `usuarios` con `rol = 'TUTOR'`.
+
+Columnas principales de `usuarios`: `nombre`, `email`, `contrasena`, `rol`, `telefono`.
+
+### Consultar usuarios
+
+```sql
+USE Tutores_db;
+SELECT id, nombre, email, rol, telefono FROM usuarios;
+```
+
+Verifica la conexión: `GET http://localhost:4000/api/health`
+
+### Migrar datos de tablas en inglés
+
+Si antes usaste tablas `users`, `subjects`, etc. y `usuarios` está vacía:
+
+```bash
+cd Backend
+pnpm migrate:spanish
+```
+
+Copia los datos a las tablas en español una sola vez (solo si el destino está vacío).
 
 ## Notas de desarrollo
 
 - El frontend consume la API en `http://localhost:4000/api` (ver `Frontend/src/api/client.js`).
-- Si añades columnas al modelo (p. ej. `phone`), arranca el backend con `DB_SYNC_ALTER=true` una vez.
+- Si añades columnas al modelo, arranca el backend con `DB_SYNC_ALTER=true` una sola vez.
+- Esquema BD en español; la API sigue respondiendo con nombres en inglés (`name`, `role`, etc.) para el frontend.
 - Usa **pnpm** en cada carpeta; evita `npm install` por consistencia con los lockfiles existentes.
 
 ## Licencia

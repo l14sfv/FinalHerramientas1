@@ -742,3 +742,105 @@ p { margin: 0 0 1rem; }
   padding-top: 1rem;
   border-top: 1px solid var(--border);
 }
+
+/* Toasts */
+.toast-container {
+  position: fixed;
+  top: calc(var(--nav-height) + 0.75rem);
+  right: 1rem;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-width: min(360px, calc(100vw - 2rem));
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-h);
+  font-size: 0.9rem;
+  text-align: left;
+  pointer-events: auto;
+  animation: toast-in 0.25s ease-out;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.toast-success {
+  border-color: color-mix(in srgb, var(--success) 35%, var(--border));
+  background: color-mix(in srgb, var(--success-bg) 80%, var(--bg-elevated));
+}
+
+.toast-error {
+  border-color: color-mix(in srgb, var(--danger) 35%, var(--border));
+  background: color-mix(in srgb, var(--danger-bg) 80%, var(--bg-elevated));
+}
+
+.toast-info {
+  border-color: color-mix(in srgb, var(--info) 35%, var(--border));
+  background: color-mix(in srgb, var(--info-bg) 80%, var(--bg-elevated));
+}
+
+.toast-icon {
+  flex-shrink: 0;
+  width: 1.35rem;
+  height: 1.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+.toast-success .toast-icon {
+  background: var(--success);
+  color: #fff;
+}
+
+.toast-error .toast-icon {
+  background: var(--danger);
+  color: #fff;
+}
+
+.toast-info .toast-icon {
+  background: var(--info);
+  color: #fff;
+}
+
+.toast-message {
+  flex: 1;
+  line-height: 1.45;
+}
+
+.toast-close {
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+.toast-close:hover {
+  color: var(--text-h);
+}

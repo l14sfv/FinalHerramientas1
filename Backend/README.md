@@ -2,7 +2,7 @@
 
 API REST con Node.js, Express, Sequelize y MySQL.
 
-Documentación general del proyecto: [../README.md](../README.md).
+Documentación general: [../README.md](../README.md).
 
 ## Inicio rápido
 
@@ -12,16 +12,41 @@ cp .env.example .env
 pnpm dev
 ```
 
-Servidor en `http://localhost:4000`. Rutas bajo `/api`.
-
-## Estructura
+## Estructura (`src/`)
 
 ```
 src/
-├── app.js              Entrada y sync de BD
-├── config/database.js  Conexión Sequelize
-├── controllers/        Lógica de endpoints
-├── middleware/         JWT auth
-├── models/             User, Subject, TutorSubject, Session
-└── routes/             Rutas Express
+├── app.js
+├── config/baseDatos.js
+├── modelos/
+│   ├── Usuario.js
+│   ├── Materia.js
+│   ├── TutorMateria.js
+│   ├── Sesion.js
+│   └── index.js
+├── controladores/
+│   ├── autenticacion.js
+│   ├── materias.js
+│   ├── tutores.js
+│   ├── sesiones.js
+│   └── salud.js
+├── rutas/
+│   ├── autenticacion.js
+│   ├── materias.js
+│   ├── tutores.js
+│   ├── sesiones.js
+│   └── index.js
+└── middleware/
+    ├── autenticacion.js
+    └── roles.js
+```
+
+## Base de datos
+
+Esquema en español en MySQL (`Tutores_db`): `usuarios`, `materias`, `tutor_materias`, `sesiones`.
+
+Migrar datos de tablas en inglés:
+
+```bash
+pnpm migrate:spanish
 ```

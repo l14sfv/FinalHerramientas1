@@ -2,7 +2,7 @@
 
 SPA en React + Vite.
 
-Documentación general del proyecto: [../README.md](../README.md).
+Documentación general: [../README.md](../README.md).
 
 ## Inicio rápido
 
@@ -12,7 +12,30 @@ cp .env.example .env
 pnpm dev
 ```
 
-App en `http://localhost:5173`. Requiere la API en `http://localhost:4000/api`.
+## Estructura (`src/`)
+
+```
+src/
+├── paginas/
+│   ├── Inicio.jsx
+│   ├── IniciarSesion.jsx
+│   ├── Registro.jsx
+│   ├── Tutores.jsx
+│   ├── DetalleTutor.jsx
+│   └── Sesiones.jsx
+├── componentes/
+│   ├── BarraNavegacion.jsx
+│   ├── PiePagina.jsx
+│   ├── RutaProtegida.jsx
+│   └── MensajeWhatsApp.jsx
+├── contextos/
+│   ├── ContextoAutenticacion.jsx
+│   └── ContextoNotificaciones.jsx
+├── utilidades/
+│   ├── etiquetas.js
+│   └── whatsapp.js
+└── api/cliente.js
+```
 
 ## Build
 

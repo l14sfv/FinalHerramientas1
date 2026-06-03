@@ -2,33 +2,36 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 
-const db = require('./models');
-const apiRoutes = require('./routes');
+const db = require('./modelos');
+const rutasApi = require('./rutas');
 
 const app = express();
-
 const PORT = process.env.PORT || 4000;
 
-// Middlewares globales
 app.use(cors());
 app.use(express.json());
 
-// Rutas
 app.get('/', (req, res) => {
-    res.json({ message: 'API Tutoring Platform OK' });
+  res.json({ message: 'API Plataforma de Tutorías OK' });
 });
 
-app.use('/api', apiRoutes);
+app.use('/api', rutasApi);
 
-// Sincronizar modelos con la BD y levantar servidor
+const infoBd = `${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`;
+
 db.sequelize
   .sync({ alter: process.env.DB_SYNC_ALTER === 'true' })
-    .then(() => {
-        console.log('Base de datos sincronizada');
-        app.listen(PORT, () => {
-        console.log(`Servidor escuchando en puerto ${PORT}`);
-        });
-    })
-    .catch((err) => {
-        console.error('Error al sincronizar la base de datos:', err);
+  .then(async () => {
+    await db.sequelize.authenticate();
+    const totalUsuarios = await db.Usuario.count();
+    console.log('Base de datos sincronizada');
+    console.log(`MySQL → ${infoBd}`);
+    console.log(`Tabla de usuarios: usuarios (${totalUsuarios} registro(s))`);
+    console.log(`Verifica con: GET http://localhost:${PORT}/api/health`);
+    app.listen(PORT, () => {
+      console.log(`Servidor escuchando en puerto ${PORT}`);
     });
+  })
+  .catch((err) => {
+    console.error('Error al sincronizar la base de datos:', err);
+  });
