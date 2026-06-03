@@ -55,7 +55,7 @@ En otra terminal:
 
 ```bash
 cd Frontend
-cp .env.example .env    # Windows: copy .env.example .env
+cp .env         # Windows: copy .env.example .env
 pnpm install
 pnpm dev
 ```
@@ -69,10 +69,10 @@ La app queda en `http://localhost:5173` (puerto por defecto de Vite).
 | Variable         | Descripción                          | Ejemplo        |
 |------------------|--------------------------------------|----------------|
 | `PORT`           | Puerto del servidor                  | `4000`         |
-| `DB_HOST`        | Host MySQL                           | `127.0.0.1`    |
+| `DB_HOST`        | Host MySQL                           | `localhost`    |
 | `DB_PORT`        | Puerto MySQL                         | `3306`         |
 | `DB_NAME`        | Nombre de la BD                      | `Tutores_db`   |
-| `DB_USER`        | Usuario MySQL                        | `root`         |
+| `DB_USER`        | Usuario MySQL                        | `****`         |
 | `DB_PASSWORD`    | Contraseña MySQL                     | `****`         |
 | `JWT_SECRET`     | Secreto para tokens JWT              | cadena larga   |
 | `JWT_EXPIRES_IN` | Expiración del token                 | `1d`           |
