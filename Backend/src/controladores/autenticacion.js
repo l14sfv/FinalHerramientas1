@@ -99,3 +99,60 @@ exports.perfil = async (req, res) => {
     return res.status(500).json({ message: 'Error obteniendo perfil' });
   }
 };
+
+exports.actualizarPerfil = async (req, res) => {
+  try {
+    const { name, email, phone } = req.body;
+
+    const usuario = await Usuario.findByPk(req.user.id);
+    if (!usuario) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    if (name !== undefined) {
+      if (!String(name).trim()) {
+        return res.status(400).json({ message: 'El nombre no puede estar vacío' });
+      }
+      usuario.name = name.trim();
+    }
+
+    if (email !== undefined) {
+      if (!email) {
+        return res.status(400).json({ message: 'El email es obligatorio' });
+      }
+      if (email !== usuario.email) {
+        const existente = await Usuario.findOne({ where: { email } });
+        if (existente) {
+          return res.status(409).json({ message: 'Ya existe un usuario con ese email' });
+        }
+        usuario.email = email;
+      }
+    }
+
+    if (phone !== undefined) {
+      usuario.phone = phone ? String(phone).replace(/\D/g, '') : null;
+    }
+
+    if (usuario.role === 'TUTOR' && !usuario.phone) {
+      return res.status(400).json({ message: 'Los tutores deben tener un teléfono WhatsApp' });
+    }
+
+    await usuario.save();
+
+    const actualizado = {
+      id: usuario.id,
+      name: usuario.name,
+      email: usuario.email,
+      role: usuario.role,
+      phone: usuario.phone,
+    };
+
+    return res.json({
+      message: 'Perfil actualizado correctamente',
+      user: actualizado,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Error actualizando perfil' });
+  }
+};

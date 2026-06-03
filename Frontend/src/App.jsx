@@ -7,6 +7,8 @@ import IniciarSesion from './paginas/IniciarSesion';
 import Registro from './paginas/Registro';
 import Tutores from './paginas/Tutores';
 import DetalleTutor from './paginas/DetalleTutor';
+import Materias from './paginas/Materias';
+import Perfil from './paginas/Perfil';
 import Sesiones from './paginas/Sesiones';
 
 function App() {
@@ -18,8 +20,17 @@ function App() {
           <Route path="/" element={<Inicio />} />
           <Route path="/tutors" element={<Tutores />} />
           <Route path="/tutors/:id" element={<DetalleTutor />} />
+          <Route path="/materias" element={<Materias />} />
           <Route path="/login" element={<IniciarSesion />} />
           <Route path="/register" element={<Registro />} />
+          <Route
+            path="/perfil"
+            element={
+              <RutaProtegida>
+                <Perfil />
+              </RutaProtegida>
+            }
+          />
           <Route
             path="/sessions"
             element={

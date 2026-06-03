@@ -29,7 +29,9 @@ export default function PiePagina() {
             <h4>Plataforma</h4>
             <Link to="/">Inicio</Link>
             <Link to="/tutors">Tutores</Link>
+            <Link to="/materias">Materias</Link>
             {user && <Link to="/sessions">Mis sesiones</Link>}
+            {user && <Link to="/perfil">Mi perfil</Link>}
           </div>
           <div className="site-footer-col">
             <h4>Cuenta</h4>

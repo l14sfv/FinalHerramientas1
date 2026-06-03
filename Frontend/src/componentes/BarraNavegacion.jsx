@@ -23,8 +23,12 @@ export default function BarraNavegacion() {
         <nav className="navbar-links" aria-label="Principal">
           <NavLink to="/" className="nav-link" end>Inicio</NavLink>
           <NavLink to="/tutors" className="nav-link">Tutores</NavLink>
+          <NavLink to="/materias" className="nav-link">Materias</NavLink>
           {user && (
-            <NavLink to="/sessions" className="nav-link">Mis sesiones</NavLink>
+            <>
+              <NavLink to="/sessions" className="nav-link">Mis sesiones</NavLink>
+              <NavLink to="/perfil" className="nav-link">Mi perfil</NavLink>
+            </>
           )}
         </nav>
 

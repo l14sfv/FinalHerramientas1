@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/cliente';
 import { useToast } from '../contextos/ContextoNotificaciones';
+import CampoWhatsApp from '../componentes/CampoWhatsApp';
+import { combinarTelefono, INDICATIVO_POR_DEFECTO } from '../utilidades/indicativos';
 
 export default function Registro() {
   const navigate = useNavigate();
@@ -10,7 +12,8 @@ export default function Registro() {
     name: '',
     email: '',
     password: '',
-    phone: '',
+    indicativo: INDICATIVO_POR_DEFECTO,
+    numero: '',
     role: 'STUDENT',
   });
   const [error, setError] = useState('');
@@ -24,8 +27,18 @@ export default function Registro() {
     e.preventDefault();
     setError('');
     setCargando(true);
+
+    const phone = combinarTelefono(formulario.indicativo, formulario.numero);
+    const payload = {
+      name: formulario.name,
+      email: formulario.email,
+      password: formulario.password,
+      role: formulario.role,
+      phone: phone || undefined,
+    };
+
     try {
-      const { data } = await api.post('/auth/register', formulario);
+      const { data } = await api.post('/auth/register', payload);
       const msg = data.message || `Cuenta creada para ${data.name}. Ya puedes iniciar sesión.`;
       addToast(msg, 'success');
       navigate('/login');
@@ -42,6 +55,8 @@ export default function Registro() {
       setCargando(false);
     }
   };
+
+  const whatsappObligatorio = formulario.role === 'TUTOR';
 
   return (
     <div className="form-card">
@@ -72,11 +87,17 @@ export default function Registro() {
             <option value="TUTOR">Tutor</option>
           </select>
         </div>
-        <div className="form-group">
-          <label htmlFor="phone">WhatsApp {formulario.role === 'TUTOR' ? '(obligatorio)' : '(opcional)'}</label>
-          <input id="phone" className="input" type="tel" name="phone" value={formulario.phone} onChange={handleChange} required={formulario.role === 'TUTOR'} placeholder="Ej. 573001234567" autoComplete="tel" />
-          <p className="card-meta" style={{ marginTop: '0.35rem', marginBottom: 0 }}>Incluye código de país, sin espacios ni símbolos.</p>
-        </div>
+        <CampoWhatsApp
+          idPrefix="registro"
+          indicativo={formulario.indicativo}
+          numero={formulario.numero}
+          onIndicativoChange={(v) => setFormulario((f) => ({ ...f, indicativo: v }))}
+          onNumeroChange={(v) => setFormulario((f) => ({ ...f, numero: v }))}
+          required={whatsappObligatorio}
+        />
+        <p className="card-meta" style={{ marginTop: '-0.5rem', marginBottom: '1rem' }}>
+          WhatsApp {whatsappObligatorio ? 'obligatorio para tutores' : 'opcional'}.
+        </p>
         <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={cargando}>
           {cargando ? 'Creando cuenta…' : 'Crear cuenta'}
         </button>
