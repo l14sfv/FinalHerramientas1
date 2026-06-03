@@ -1,0 +1,11 @@
+{
+  "name": "tutoring-platform",
+  "private": true,
+  "packageManager": "pnpm@11.5.0",
+  "scripts": {
+    "dev:backend": "pnpm --filter tutoring-platform-backend dev",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "build:frontend": "pnpm --filter frontend build",
+    "start:backend": "pnpm --filter tutoring-platform-backend start"
+  }
+}
