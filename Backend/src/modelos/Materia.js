@@ -14,6 +14,11 @@ const Materia = sequelize.define(
       allowNull: false,
       field: 'nombre',
     },
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: 'descripcion',
+    },
   },
   {
     tableName: 'materias',
