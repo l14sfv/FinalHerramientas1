@@ -41,7 +41,7 @@ export default function IniciarSesion() {
     <div className="form-card">
       <header className="page-header" style={{ textAlign: 'center' }}>
         <h1>Bienvenido de nuevo</h1>
-        <p>Inicia sesión para gestionar tus tutorías</p>
+        <p>Inicia sesión para gestionar tus tareas</p>
       </header>
 
       {error && <div className="alert alert-error" role="alert">{error}</div>}

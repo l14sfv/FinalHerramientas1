@@ -14,7 +14,7 @@ exports.estado = async (req, res) => {
         usersTable: 'usuarios',
         userCount: totalUsuarios,
       },
-      hint: 'Esquema en español: usuarios, materias, tutor_materias, sesiones.',
+      hint: 'Esquema: usuarios, tareas.',
     });
   } catch (err) {
     console.error(err);

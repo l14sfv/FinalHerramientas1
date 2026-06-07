@@ -12,9 +12,9 @@ export default function Registro() {
     name: '',
     email: '',
     password: '',
+    passwordConfirm: '',
     indicativo: INDICATIVO_POR_DEFECTO,
     numero: '',
-    role: 'STUDENT',
   });
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
@@ -28,18 +28,35 @@ export default function Registro() {
     setError('');
     setCargando(true);
 
+    if (!formulario.name.trim() || !formulario.email.trim() || !formulario.password) {
+      setError('Por favor completa todos los campos requeridos');
+      setCargando(false);
+      return;
+    }
+
+    if (formulario.password !== formulario.passwordConfirm) {
+      setError('Las contraseñas no coinciden');
+      setCargando(false);
+      return;
+    }
+
+    if (formulario.password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres');
+      setCargando(false);
+      return;
+    }
+
     const phone = combinarTelefono(formulario.indicativo, formulario.numero);
     const payload = {
-      name: formulario.name,
-      email: formulario.email,
+      name: formulario.name.trim(),
+      email: formulario.email.trim(),
       password: formulario.password,
-      role: formulario.role,
-      phone: phone || undefined,
+      phone: phone || null,
     };
 
     try {
       const { data } = await api.post('/auth/register', payload);
-      const msg = data.message || `Cuenta creada para ${data.name}. Ya puedes iniciar sesión.`;
+      const msg = data.message || `¡Bienvenido ${data.name}! Ya puedes iniciar sesión.`;
       addToast(msg, 'success');
       navigate('/login');
     } catch (err) {
@@ -56,13 +73,11 @@ export default function Registro() {
     }
   };
 
-  const whatsappObligatorio = formulario.role === 'TUTOR';
-
   return (
     <div className="form-card">
       <header className="page-header" style={{ textAlign: 'center' }}>
-        <h1>Crear cuenta</h1>
-        <p>Únete como estudiante o tutor</p>
+        <h1>✨ Crear cuenta</h1>
+        <p>Únete a Planora y empieza a organizar tus tareas</p>
       </header>
 
       {error && <div className="alert alert-error" role="alert">{error}</div>}
@@ -70,42 +85,83 @@ export default function Registro() {
       <form className="card" onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="name">Nombre completo</label>
-          <input id="name" className="input" type="text" name="name" value={formulario.name} onChange={handleChange} required autoComplete="name" />
+          <input
+            id="name"
+            className="input"
+            type="text"
+            name="name"
+            value={formulario.name}
+            onChange={handleChange}
+            required
+            autoComplete="name"
+            placeholder="Tu nombre"
+          />
         </div>
         <div className="form-group">
           <label htmlFor="email">Email</label>
-          <input id="email" className="input" type="email" name="email" value={formulario.email} onChange={handleChange} required autoComplete="email" />
+          <input
+            id="email"
+            className="input"
+            type="email"
+            name="email"
+            value={formulario.email}
+            onChange={handleChange}
+            required
+            autoComplete="email"
+            placeholder="tu@email.com"
+          />
         </div>
         <div className="form-group">
           <label htmlFor="password">Contraseña</label>
-          <input id="password" className="input" type="password" name="password" value={formulario.password} onChange={handleChange} required autoComplete="new-password" />
+          <input
+            id="password"
+            className="input"
+            type="password"
+            name="password"
+            value={formulario.password}
+            onChange={handleChange}
+            required
+            autoComplete="new-password"
+            placeholder="Mínimo 6 caracteres"
+          />
         </div>
         <div className="form-group">
-          <label htmlFor="role">Quiero registrarme como</label>
-          <select id="role" className="select" name="role" value={formulario.role} onChange={handleChange}>
-            <option value="STUDENT">Estudiante</option>
-            <option value="TUTOR">Tutor</option>
-          </select>
+          <label htmlFor="passwordConfirm">Confirmar contraseña</label>
+          <input
+            id="passwordConfirm"
+            className="input"
+            type="password"
+            name="passwordConfirm"
+            value={formulario.passwordConfirm}
+            onChange={handleChange}
+            required
+            autoComplete="new-password"
+            placeholder="Repite tu contraseña"
+          />
         </div>
-        <CampoWhatsApp
-          idPrefix="registro"
-          indicativo={formulario.indicativo}
-          numero={formulario.numero}
-          onIndicativoChange={(v) => setFormulario((f) => ({ ...f, indicativo: v }))}
-          onNumeroChange={(v) => setFormulario((f) => ({ ...f, numero: v }))}
-          required={whatsappObligatorio}
-        />
-        <p className="card-meta" style={{ marginTop: '-0.5rem', marginBottom: '1rem' }}>
-          WhatsApp {whatsappObligatorio ? 'obligatorio para tutores' : 'opcional'}.
-        </p>
-        <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={cargando}>
-          {cargando ? 'Creando cuenta…' : 'Crear cuenta'}
+        <div className="form-group">
+          <label>WhatsApp (opcional)</label>
+          <CampoWhatsApp
+            idPrefix="registro"
+            indicativo={formulario.indicativo}
+            numero={formulario.numero}
+            onIndicativoChange={(v) => setFormulario((f) => ({ ...f, indicativo: v }))}
+            onNumeroChange={(v) => setFormulario((f) => ({ ...f, numero: v }))}
+            required={false}
+          />
+          <p className="card-meta" style={{ marginTop: '0.4rem' }}>
+            Nos ayuda a contactarte si es necesario
+          </p>
+        </div>
+        <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }} disabled={cargando}>
+          {cargando ? '⏳ Creando cuenta…' : '🚀 Crear cuenta'}
         </button>
       </form>
 
       <p className="auth-footer">
-        ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
+        ¿Ya tienes cuenta? <Link to="/login">Inicia sesión aquí</Link>
       </p>
     </div>
   );
 }
+

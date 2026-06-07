@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get('/', (req, res) => {
-  res.json({ message: 'API Plataforma de Tutorías OK' });
+  res.json({ message: 'API Plataforma de Tareas OK' });
 });
 
 app.use('/api', rutasApi);

@@ -67,8 +67,6 @@ export default function Perfil() {
 
   if (!user) return null;
 
-  const whatsappObligatorio = user.role === 'TUTOR';
-
   return (
     <>
       <header className="page-header">
@@ -123,12 +121,10 @@ export default function Perfil() {
               numero={formulario.numero}
               onIndicativoChange={(v) => setFormulario((f) => ({ ...f, indicativo: v }))}
               onNumeroChange={(v) => setFormulario((f) => ({ ...f, numero: v }))}
-              required={whatsappObligatorio}
+              required={false}
             />
             <p className="card-meta" style={{ marginBottom: '1rem' }}>
-              {whatsappObligatorio
-                ? 'Como tutor, el WhatsApp es obligatorio para que los estudiantes te contacten.'
-                : 'Opcional. Facilita la comunicación por WhatsApp.'}
+              Opcional. Facilita la comunicación por WhatsApp.
             </p>
             <button type="submit" className="btn btn-primary" disabled={cargando}>
               {cargando ? 'Guardando…' : 'Guardar cambios'}

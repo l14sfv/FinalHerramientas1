@@ -6,15 +6,10 @@ const RONDAS_SALT = 10;
 
 exports.registrar = async (req, res) => {
   try {
-    const { name, email, password, role, phone } = req.body;
-    const rol = role || 'STUDENT';
+    const { name, email, password, phone } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Nombre, email y contraseña son obligatorios' });
-    }
-
-    if (rol === 'TUTOR' && !phone) {
-      return res.status(400).json({ message: 'Los tutores deben indicar un teléfono WhatsApp' });
     }
 
     const existente = await Usuario.findOne({ where: { email } });
@@ -25,11 +20,10 @@ exports.registrar = async (req, res) => {
     const passwordHash = await bcrypt.hash(password, RONDAS_SALT);
 
     const usuario = await Usuario.create({
-      name,
-      email,
+      name: name.trim(),
+      email: email.trim(),
       passwordHash,
-      role: rol,
-      phone: phone || null,
+      phone: phone ? String(phone).replace(/\D/g, '') : null,
     });
 
     return res.status(201).json({
@@ -37,8 +31,8 @@ exports.registrar = async (req, res) => {
       id: usuario.id,
       name: usuario.name,
       email: usuario.email,
-      role: usuario.role,
       phone: usuario.phone,
+      role: usuario.role,
     });
   } catch (err) {
     console.error(err);
@@ -61,7 +55,7 @@ exports.iniciarSesion = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: usuario.id, email: usuario.email, role: usuario.role },
+      { id: usuario.id, email: usuario.email },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '1d' }
     );
@@ -73,8 +67,8 @@ exports.iniciarSesion = async (req, res) => {
         id: usuario.id,
         name: usuario.name,
         email: usuario.email,
-        role: usuario.role,
         phone: usuario.phone,
+        role: usuario.role,
       },
     });
   } catch (err) {
@@ -85,15 +79,21 @@ exports.iniciarSesion = async (req, res) => {
 
 exports.perfil = async (req, res) => {
   try {
-    const usuario = await Usuario.findByPk(req.user.id, {
-      attributes: ['id', 'name', 'email', 'role', 'phone', 'createdAt', 'updatedAt'],
-    });
+    const usuario = await Usuario.findByPk(req.user.id);
 
     if (!usuario) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
-    return res.json(usuario);
+    return res.json({
+      id: usuario.id,
+      name: usuario.name,
+      email: usuario.email,
+      phone: usuario.phone,
+      role: usuario.role,
+      createdAt: usuario.createdAt,
+      updatedAt: usuario.updatedAt,
+    });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: 'Error obteniendo perfil' });
@@ -125,16 +125,12 @@ exports.actualizarPerfil = async (req, res) => {
         if (existente) {
           return res.status(409).json({ message: 'Ya existe un usuario con ese email' });
         }
-        usuario.email = email;
+        usuario.email = email.trim();
       }
     }
 
     if (phone !== undefined) {
       usuario.phone = phone ? String(phone).replace(/\D/g, '') : null;
-    }
-
-    if (usuario.role === 'TUTOR' && !usuario.phone) {
-      return res.status(400).json({ message: 'Los tutores deben tener un teléfono WhatsApp' });
     }
 
     await usuario.save();
@@ -143,8 +139,8 @@ exports.actualizarPerfil = async (req, res) => {
       id: usuario.id,
       name: usuario.name,
       email: usuario.email,
-      role: usuario.role,
       phone: usuario.phone,
+      role: usuario.role,
     };
 
     return res.json({
@@ -156,3 +152,4 @@ exports.actualizarPerfil = async (req, res) => {
     return res.status(500).json({ message: 'Error actualizando perfil' });
   }
 };
+

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contextos/ContextoAutenticacion';
 import { buildWhatsAppUrl, WHATSAPP_SOPORTE } from '../utilidades/whatsapp';
 
-const MENSAJE_SOPORTE = 'Hola, necesito ayuda con la Plataforma de Tutorías.';
+const MENSAJE_SOPORTE = 'Hola, necesito ayuda con Planora.';
 
 export default function PiePagina() {
   const { user } = useAuth();
@@ -16,27 +16,30 @@ export default function PiePagina() {
       <div className="site-footer-inner">
         <div className="site-footer-brand">
           <Link to="/" className="navbar-brand">
-            <span><img className="footer-logo" src="../public/logo.png" alt="NexTutor" /></span>
-            NexTutor
+            <span><img className="footer-logo" src="/logo.png" alt="Planora" /></span>
+            Planora
           </Link>
           <p className="site-footer-tagline">
-            Conecta estudiantes y tutores. Agenda sesiones y comunícate al instante.
+            Organiza tus tareas diarias, establece prioridades y completa tus objetivos con eficiencia.
           </p>
         </div>
 
         <nav className="site-footer-nav" aria-label="Pie de página">
           <div className="site-footer-col">
-            <h4>Plataforma</h4>
+            <h4>Aplicación</h4>
             <Link to="/">Inicio</Link>
-            <Link to="/tutors">Tutores</Link>
-            <Link to="/materias">Materias</Link>
-            {user && <Link to="/sessions">Mis sesiones</Link>}
+            {user && <Link to="/tasks">Mis tareas</Link>}
             {user && <Link to="/perfil">Mi perfil</Link>}
           </div>
           <div className="site-footer-col">
             <h4>Cuenta</h4>
             {user ? (
-              <span className="site-footer-user">{user.name}</span>
+              <>
+                <span className="site-footer-user">👤 {user.name}</span>
+                <span className="card-meta" style={{ fontSize: '0.8rem', marginTop: '0.3rem', display: 'block' }}>
+                  {user.email}
+                </span>
+              </>
             ) : (
               <>
                 <Link to="/login">Iniciar sesión</Link>
@@ -45,7 +48,7 @@ export default function PiePagina() {
             )}
           </div>
           <div className="site-footer-col">
-            <h4>Contacto</h4>
+            <h4>Soporte</h4>
             {urlSoporte ? (
               <a
                 href={urlSoporte}
@@ -53,17 +56,17 @@ export default function PiePagina() {
                 rel="noopener noreferrer"
                 className="site-footer-whatsapp"
               >
-                Soporte por WhatsApp
+                💬 WhatsApp
               </a>
             ) : (
-              <span className="card-meta">ORT</span>
+              <span className="card-meta">Soporte disponible</span>
             )}
           </div>
         </nav>
       </div>
 
       <div className="site-footer-bottom">
-        <p>© {anio} NexTutor. Todos los derechos reservados.</p>
+        <p>© {anio} Planora. Todos los derechos reservados. 🚀</p>
       </div>
     </footer>
   );

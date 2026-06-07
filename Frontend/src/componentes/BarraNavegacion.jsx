@@ -16,17 +16,15 @@ export default function BarraNavegacion() {
     <header className="navbar">
       <div className="navbar-inner">
         <Link to="/" className="navbar-brand">
-          <span><img className="navbar-logo" src="../public/logo.png" alt="NexTutor" /></span>
-          NexTutor
+          <span><img className="navbar-logo" src="/logo.png" alt="Planora" /></span>
+          Planora
         </Link>
 
         <nav className="navbar-links" aria-label="Principal">
           <NavLink to="/" className="nav-link" end>Inicio</NavLink>
-          <NavLink to="/tutors" className="nav-link">Tutores</NavLink>
-          <NavLink to="/materias" className="nav-link">Materias</NavLink>
           {user && (
             <>
-              <NavLink to="/sessions" className="nav-link">Mis sesiones</NavLink>
+              <NavLink to="/tasks" className="nav-link">Mis tareas</NavLink>
               <NavLink to="/perfil" className="nav-link">Mi perfil</NavLink>
             </>
           )}
@@ -37,9 +35,6 @@ export default function BarraNavegacion() {
             <>
               <span className="user-pill">
                 {user.name}
-                <span className="badge badge-role">
-                  {ETIQUETAS_ROL[user.role] || user.role}
-                </span>
               </span>
               <button type="button" className="btn btn-ghost btn-sm" onClick={handleLogout}>
                 Salir
