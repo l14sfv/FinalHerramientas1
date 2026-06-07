@@ -512,7 +512,7 @@ p { margin: 0 0 1rem; }
 .feature-card {
   text-align: left;
   padding: 2rem;
-  background: white;
+  background: rgb(52, 41, 94);
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   transition: all 0.3s ease;
