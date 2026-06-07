@@ -8,6 +8,7 @@ import { combinarTelefono, INDICATIVO_POR_DEFECTO } from '../utilidades/indicati
 export default function Registro() {
   const navigate = useNavigate();
   const { addToast } = useToast();
+
   const [formulario, setFormulario] = useState({
     name: '',
     email: '',
@@ -16,6 +17,7 @@ export default function Registro() {
     indicativo: INDICATIVO_POR_DEFECTO,
     numero: '',
   });
+
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
 
@@ -28,8 +30,17 @@ export default function Registro() {
     setError('');
     setCargando(true);
 
-    if (!formulario.name.trim() || !formulario.email.trim() || !formulario.password) {
+    const emailLimpio = formulario.email.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!formulario.name.trim() || !emailLimpio || !formulario.password) {
       setError('Por favor completa todos los campos requeridos');
+      setCargando(false);
+      return;
+    }
+
+    if (!emailRegex.test(emailLimpio)) {
+      setError('Ingresa un correo válido');
       setCargando(false);
       return;
     }
@@ -47,9 +58,10 @@ export default function Registro() {
     }
 
     const phone = combinarTelefono(formulario.indicativo, formulario.numero);
+
     const payload = {
       name: formulario.name.trim(),
-      email: formulario.email.trim(),
+      email: emailLimpio,
       password: formulario.password,
       phone: phone || null,
     };
@@ -66,6 +78,7 @@ export default function Registro() {
         (err.request
           ? 'No se pudo conectar con el servidor. Verifica que el backend esté en marcha.'
           : 'No se pudo crear la cuenta. El email podría estar en uso.');
+
       setError(msg);
       addToast(msg, 'error');
     } finally {
@@ -76,11 +89,15 @@ export default function Registro() {
   return (
     <div className="form-card">
       <header className="page-header" style={{ textAlign: 'center' }}>
-        <h1>✨ Crear cuenta</h1>
-        <p>Únete a Planora y empieza a organizar tus tareas</p>
+        <h1>Crear cuenta</h1>
+        <p>Regístrate para comenzar a gestionar tus tareas</p>
       </header>
 
-      {error && <div className="alert alert-error" role="alert">{error}</div>}
+      {error && (
+        <div className="alert alert-error" role="alert">
+          {error}
+        </div>
+      )}
 
       <form className="card" onSubmit={handleSubmit}>
         <div className="form-group">
@@ -97,6 +114,7 @@ export default function Registro() {
             placeholder="Tu nombre"
           />
         </div>
+
         <div className="form-group">
           <label htmlFor="email">Email</label>
           <input
@@ -111,6 +129,7 @@ export default function Registro() {
             placeholder="tu@email.com"
           />
         </div>
+
         <div className="form-group">
           <label htmlFor="password">Contraseña</label>
           <input
@@ -125,6 +144,7 @@ export default function Registro() {
             placeholder="Mínimo 6 caracteres"
           />
         </div>
+
         <div className="form-group">
           <label htmlFor="passwordConfirm">Confirmar contraseña</label>
           <input
@@ -139,22 +159,25 @@ export default function Registro() {
             placeholder="Repite tu contraseña"
           />
         </div>
-        <div className="form-group">
-          <label>WhatsApp (opcional)</label>
-          <CampoWhatsApp
-            idPrefix="registro"
-            indicativo={formulario.indicativo}
-            numero={formulario.numero}
-            onIndicativoChange={(v) => setFormulario((f) => ({ ...f, indicativo: v }))}
-            onNumeroChange={(v) => setFormulario((f) => ({ ...f, numero: v }))}
-            required={false}
-          />
-          <p className="card-meta" style={{ marginTop: '0.4rem' }}>
-            Nos ayuda a contactarte si es necesario
-          </p>
-        </div>
-        <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }} disabled={cargando}>
-          {cargando ? '⏳ Creando cuenta…' : '🚀 Crear cuenta'}
+
+        <CampoWhatsApp
+          indicativo={formulario.indicativo}
+          numero={formulario.numero}
+          onIndicativoChange={(valor) =>
+            setFormulario((f) => ({ ...f, indicativo: valor }))
+          }
+          onNumeroChange={(valor) =>
+            setFormulario((f) => ({ ...f, numero: valor }))
+          }
+        />
+
+        <button
+          type="submit"
+          className="btn btn-primary"
+          style={{ width: '100%', marginTop: '1rem' }}
+          disabled={cargando}
+        >
+          {cargando ? 'Creando cuenta…' : 'Crear cuenta'}
         </button>
       </form>
 
@@ -164,4 +187,3 @@ export default function Registro() {
     </div>
   );
 }
-

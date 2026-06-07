@@ -4,26 +4,53 @@ const { Usuario } = require('../modelos');
 
 const RONDAS_SALT = 10;
 
+const limpiarEmail = (email) => String(email || '').trim().toLowerCase();
+const limpiarNombre = (name) => String(name || '').trim();
+const limpiarTelefono = (phone) =>
+  phone ? String(phone).replace(/\D/g, '') : null;
+
+const emailValido = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
 exports.registrar = async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
 
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: 'Nombre, email y contraseña son obligatorios' });
+    const nombreLimpio = limpiarNombre(name);
+    const emailLimpio = limpiarEmail(email);
+    const telefonoLimpio = limpiarTelefono(phone);
+
+    if (!nombreLimpio || !emailLimpio || !password) {
+      return res.status(400).json({
+        message: 'Nombre, email y contraseña son obligatorios',
+      });
     }
 
-    const existente = await Usuario.findOne({ where: { email } });
+    if (!emailValido(emailLimpio)) {
+      return res.status(400).json({
+        message: 'El email no tiene un formato válido',
+      });
+    }
+
+    if (String(password).length < 6) {
+      return res.status(400).json({
+        message: 'La contraseña debe tener al menos 6 caracteres',
+      });
+    }
+
+    const existente = await Usuario.findOne({ where: { email: emailLimpio } });
     if (existente) {
-      return res.status(409).json({ message: 'Ya existe un usuario con ese email' });
+      return res.status(409).json({
+        message: 'Ya existe un usuario con ese email',
+      });
     }
 
     const passwordHash = await bcrypt.hash(password, RONDAS_SALT);
 
     const usuario = await Usuario.create({
-      name: name.trim(),
-      email: email.trim(),
+      name: nombreLimpio,
+      email: emailLimpio,
       passwordHash,
-      phone: phone ? String(phone).replace(/\D/g, '') : null,
+      phone: telefonoLimpio,
     });
 
     return res.status(201).json({
@@ -32,19 +59,41 @@ exports.registrar = async (req, res) => {
       name: usuario.name,
       email: usuario.email,
       phone: usuario.phone,
-      role: usuario.role,
     });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Error registrando usuario' });
+    console.error('ERROR REGISTRANDO USUARIO:', err);
+
+    if (err.name === 'SequelizeValidationError') {
+      return res.status(400).json({
+        message: err.errors?.[0]?.message || 'Datos inválidos',
+      });
+    }
+
+    if (err.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({
+        message: 'Ya existe un usuario con ese email',
+      });
+    }
+
+    return res.status(500).json({
+      message: 'Error registrando usuario',
+      detail: err.message,
+    });
   }
 };
 
 exports.iniciarSesion = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const emailLimpio = limpiarEmail(req.body.email);
+    const { password } = req.body;
 
-    const usuario = await Usuario.findOne({ where: { email } });
+    if (!emailLimpio || !password) {
+      return res.status(400).json({
+        message: 'Email y contraseña son obligatorios',
+      });
+    }
+
+    const usuario = await Usuario.findOne({ where: { email: emailLimpio } });
     if (!usuario) {
       return res.status(401).json({ message: 'Credenciales inválidas' });
     }
@@ -68,11 +117,10 @@ exports.iniciarSesion = async (req, res) => {
         name: usuario.name,
         email: usuario.email,
         phone: usuario.phone,
-        role: usuario.role,
       },
     });
   } catch (err) {
-    console.error(err);
+    console.error('ERROR INICIANDO SESIÓN:', err);
     return res.status(500).json({ message: 'Error iniciando sesión' });
   }
 };
@@ -90,12 +138,11 @@ exports.perfil = async (req, res) => {
       name: usuario.name,
       email: usuario.email,
       phone: usuario.phone,
-      role: usuario.role,
       createdAt: usuario.createdAt,
       updatedAt: usuario.updatedAt,
     });
   } catch (err) {
-    console.error(err);
+    console.error('ERROR OBTENIENDO PERFIL:', err);
     return res.status(500).json({ message: 'Error obteniendo perfil' });
   }
 };
@@ -110,46 +157,57 @@ exports.actualizarPerfil = async (req, res) => {
     }
 
     if (name !== undefined) {
-      if (!String(name).trim()) {
+      const nombreLimpio = limpiarNombre(name);
+      if (!nombreLimpio) {
         return res.status(400).json({ message: 'El nombre no puede estar vacío' });
       }
-      usuario.name = name.trim();
+      usuario.name = nombreLimpio;
     }
 
     if (email !== undefined) {
-      if (!email) {
+      const emailLimpio = limpiarEmail(email);
+
+      if (!emailLimpio) {
         return res.status(400).json({ message: 'El email es obligatorio' });
       }
-      if (email !== usuario.email) {
-        const existente = await Usuario.findOne({ where: { email } });
+
+      if (!emailValido(emailLimpio)) {
+        return res.status(400).json({ message: 'El email no tiene un formato válido' });
+      }
+
+      if (emailLimpio !== usuario.email) {
+        const existente = await Usuario.findOne({ where: { email: emailLimpio } });
         if (existente) {
           return res.status(409).json({ message: 'Ya existe un usuario con ese email' });
         }
-        usuario.email = email.trim();
+        usuario.email = emailLimpio;
       }
     }
 
     if (phone !== undefined) {
-      usuario.phone = phone ? String(phone).replace(/\D/g, '') : null;
+      usuario.phone = limpiarTelefono(phone);
     }
 
     await usuario.save();
 
-    const actualizado = {
-      id: usuario.id,
-      name: usuario.name,
-      email: usuario.email,
-      phone: usuario.phone,
-      role: usuario.role,
-    };
-
     return res.json({
       message: 'Perfil actualizado correctamente',
-      user: actualizado,
+      user: {
+        id: usuario.id,
+        name: usuario.name,
+        email: usuario.email,
+        phone: usuario.phone,
+      },
     });
   } catch (err) {
-    console.error(err);
+    console.error('ERROR ACTUALIZANDO PERFIL:', err);
+
+    if (err.name === 'SequelizeValidationError') {
+      return res.status(400).json({
+        message: err.errors?.[0]?.message || 'Datos inválidos',
+      });
+    }
+
     return res.status(500).json({ message: 'Error actualizando perfil' });
   }
 };
-

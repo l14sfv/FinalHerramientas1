@@ -4,34 +4,43 @@ import { useToast } from '../contextos/ContextoNotificaciones';
 import api from '../api/cliente';
 import '../estilos/Tareas.css';
 
+const ESTADOS = ['PENDIENTE', 'EN_PROGRESO', 'COMPLETADA'];
+const ESTADO_LABEL = {
+  PENDIENTE:   '📝 Por Hacer',
+  EN_PROGRESO: '⏳ En Progreso',
+  COMPLETADA:  '✅ Completadas',
+};
+const COLOR_PRIORIDAD = { ALTA: '#ef4444', MEDIA: '#f59e0b', BAJA: '#3b82f6' };
+
+const formVacio = () => ({
+  titulo: '',
+  descripcion: '',
+  prioridad: 'MEDIA',
+  fechaVencimiento: '',
+});
+
 function Tareas() {
-  const { user } = useAuth();
+  const { user }     = useAuth();
   const { addToast } = useToast();
-  const [tareas, setTareas] = useState([]);
-  const [cargando, setCargando] = useState(true);
-  const [busqueda, setBusqueda] = useState('');
+
+  const [tareas,            setTareas]            = useState([]);
+  const [cargando,          setCargando]          = useState(true);
+  const [busqueda,          setBusqueda]          = useState('');
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const [editando, setEditando] = useState(null);
-  const [formData, setFormData] = useState({
-    titulo: '',
-    descripcion: '',
-    prioridad: 'MEDIA',
-    fechaVencimiento: '',
-  });
+  const [editando,          setEditando]          = useState(null);
+  const [formData,          setFormData]          = useState(formVacio());
 
-  const ESTADOS = ['PENDIENTE', 'EN_PROGRESO', 'COMPLETADA'];
-
+  // Carga tareas cuando cambia la búsqueda
   useEffect(() => {
     cargarTareas();
-  }, [busqueda]);
+  }, [busqueda]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const cargarTareas = async () => {
     try {
       setCargando(true);
-      const params = new URLSearchParams();
-      if (busqueda) params.append('search', busqueda);
-
-      const { data } = await api.get(`/tasks?${params}`);
+      const params = {};
+      if (busqueda.trim()) params.search = busqueda.trim();
+      const { data } = await api.get('/tasks', { params });
       setTareas(data);
     } catch (error) {
       console.error('Error al cargar tareas:', error);
@@ -41,49 +50,67 @@ function Tareas() {
     }
   };
 
+  // ── CREAR / EDITAR ───────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.titulo.trim()) return;
+    if (!formData.titulo.trim()) {
+      addToast('El título es obligatorio', 'error');
+      return;
+    }
+
+    // Bug 3 corregido: enviar null si la fecha está vacía
+    const payload = {
+      titulo:           formData.titulo.trim(),
+      descripcion:      formData.descripcion.trim() || null,
+      prioridad:        formData.prioridad,
+      fechaVencimiento: formData.fechaVencimiento || null,
+    };
 
     try {
       if (editando) {
-        await api.patch(`/tasks/${editando.id}`, formData);
-        addToast('Tarea actualizada', 'success');
+        // Bug 1 corregido: usar PUT en vez de PATCH para actualizar
+        await api.put(`/tasks/${editando.id}`, payload);
+        addToast('Tarea actualizada correctamente', 'success');
       } else {
-        await api.post('/tasks', formData);
-        addToast('Tarea creada', 'success');
+        await api.post('/tasks', payload);
+        addToast('Tarea creada correctamente', 'success');
       }
-      setFormData({ titulo: '', descripcion: '', prioridad: 'MEDIA', fechaVencimiento: '' });
-      setEditando(null);
-      setMostrarFormulario(false);
+      resetFormulario();
       cargarTareas();
     } catch (error) {
-      console.error('Error:', error);
-      addToast(error.response?.data?.message || 'Error al guardar tarea', 'error');
+      console.error('Error al guardar tarea:', error);
+      addToast(error.response?.data?.message || error.response?.data?.error || 'Error al guardar tarea', 'error');
     }
+  };
+
+  const resetFormulario = () => {
+    setFormData(formVacio());
+    setEditando(null);
+    setMostrarFormulario(false);
   };
 
   const handleEditar = (tarea) => {
     setEditando(tarea);
     setFormData({
-      titulo: tarea.titulo,
-      descripcion: tarea.descripcion || '',
-      prioridad: tarea.prioridad,
-      fechaVencimiento: tarea.fechaVencimiento ? tarea.fechaVencimiento.split('T')[0] : '',
+      titulo:           tarea.titulo,
+      descripcion:      tarea.descripcion || '',
+      prioridad:        tarea.prioridad,
+      fechaVencimiento: tarea.fechaVencimiento
+        ? tarea.fechaVencimiento.split('T')[0]
+        : '',
     });
     setMostrarFormulario(true);
   };
 
   const handleEliminar = async (id) => {
-    if (confirm('¿Eliminar esta tarea?')) {
-      try {
-        await api.delete(`/tasks/${id}`);
-        addToast('Tarea eliminada', 'success');
-        cargarTareas();
-      } catch (error) {
-        console.error('Error:', error);
-        addToast(error.response?.data?.message || 'Error al eliminar', 'error');
-      }
+    if (!confirm('¿Eliminar esta tarea?')) return;
+    try {
+      await api.delete(`/tasks/${id}`);
+      addToast('Tarea eliminada', 'success');
+      cargarTareas();
+    } catch (error) {
+      console.error('Error al eliminar:', error);
+      addToast(error.response?.data?.message || 'Error al eliminar', 'error');
     }
   };
 
@@ -92,25 +119,14 @@ function Tareas() {
       await api.patch(`/tasks/${id}/status`, { estado: nuevoEstado });
       cargarTareas();
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error al cambiar estado:', error);
       addToast(error.response?.data?.message || 'Error al cambiar estado', 'error');
     }
   };
 
-  const handleCancelar = () => {
-    setFormData({ titulo: '', descripcion: '', prioridad: 'MEDIA', fechaVencimiento: '' });
-    setEditando(null);
-    setMostrarFormulario(false);
-  };
-
-  const obtenerTareasPorEstado = (estado) => {
-    return tareas.filter((t) => t.estado === estado && (busqueda === '' || t.titulo.toLowerCase().includes(busqueda.toLowerCase())));
-  };
-
-  const getColorPrioridad = (prioridad) => {
-    const colores = { ALTA: '#ef4444', MEDIA: '#f59e0b', BAJA: '#3b82f6' };
-    return colores[prioridad] || '#6b7280';
-  };
+  // Bug 2 corregido: filtrar solo localmente para no duplicar lógica
+  const obtenerTareasPorEstado = (estado) =>
+    tareas.filter((t) => t.estado === estado);
 
   if (!user) return <div className="tareas-empty">Cargando...</div>;
 
@@ -126,12 +142,16 @@ function Tareas() {
             onChange={(e) => setBusqueda(e.target.value)}
             className="tareas-busqueda-global"
           />
-          <button className="btn-crear" onClick={() => setMostrarFormulario(true)}>
+          <button
+            className="btn-crear"
+            onClick={() => { resetFormulario(); setMostrarFormulario(true); }}
+          >
             + Nueva Tarea
           </button>
         </div>
       </div>
 
+      {/* ── Modal formulario ───────────────────────────────────────────── */}
       {mostrarFormulario && (
         <div className="tareas-formulario-modal">
           <div className="tareas-formulario">
@@ -139,18 +159,19 @@ function Tareas() {
             <form onSubmit={handleSubmit}>
               <input
                 type="text"
-                placeholder="Título de la tarea"
+                placeholder="Título de la tarea *"
                 value={formData.titulo}
                 onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
                 className="form-control"
                 required
+                autoFocus
               />
               <textarea
                 placeholder="Descripción (opcional)"
                 value={formData.descripcion}
                 onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
                 className="form-control"
-                rows="4"
+                rows="3"
               />
               <select
                 value={formData.prioridad}
@@ -161,6 +182,9 @@ function Tareas() {
                 <option value="MEDIA">🟡 Prioridad Media</option>
                 <option value="ALTA">🔴 Prioridad Alta</option>
               </select>
+              <label style={{ fontSize: '0.85rem', color: '#6b7280' }}>
+                Fecha de vencimiento (opcional)
+              </label>
               <input
                 type="date"
                 value={formData.fechaVencimiento}
@@ -171,7 +195,7 @@ function Tareas() {
                 <button type="submit" className="btn-guardar">
                   {editando ? 'Actualizar' : 'Crear'}
                 </button>
-                <button type="button" onClick={handleCancelar} className="btn-cancelar">
+                <button type="button" onClick={resetFormulario} className="btn-cancelar">
                   Cancelar
                 </button>
               </div>
@@ -180,18 +204,17 @@ function Tareas() {
         </div>
       )}
 
+      {/* ── Tablero kanban ─────────────────────────────────────────────── */}
       {cargando ? (
         <div className="tareas-empty">⏳ Cargando tareas...</div>
       ) : (
         <div className="kanban-board">
           {ESTADOS.map((estado) => {
             const tareasEstado = obtenerTareasPorEstado(estado);
-            const estadoLabel = estado === 'PENDIENTE' ? '📝 Por Hacer' : estado === 'EN_PROGRESO' ? '⏳ En Progreso' : '✅ Completadas';
-
             return (
               <div key={estado} className="kanban-columna">
                 <div className="kanban-header">
-                  <h3>{estadoLabel}</h3>
+                  <h3>{ESTADO_LABEL[estado]}</h3>
                   <span className="kanban-count">{tareasEstado.length}</span>
                 </div>
                 <div className="kanban-tareas">
@@ -200,56 +223,53 @@ function Tareas() {
                   ) : (
                     tareasEstado.map((tarea) => (
                       <div key={tarea.id} className="kanban-tarea">
-                        <div className="tarea-prioridad" style={{ backgroundColor: getColorPrioridad(tarea.prioridad) }}></div>
+                        <div
+                          className="tarea-prioridad"
+                          style={{ backgroundColor: COLOR_PRIORIDAD[tarea.prioridad] }}
+                        />
                         <div className="tarea-contenido">
                           <h4>{tarea.titulo}</h4>
-                          {tarea.descripcion && <p className="tarea-desc">{tarea.descripcion}</p>}
+                          {tarea.descripcion && (
+                            <p className="tarea-desc">{tarea.descripcion}</p>
+                          )}
                           {tarea.fechaVencimiento && (
-                            <span className="tarea-fecha">📅 {new Date(tarea.fechaVencimiento).toLocaleDateString('es-ES')}</span>
+                            <span className="tarea-fecha">
+                              📅 {new Date(tarea.fechaVencimiento).toLocaleDateString('es-CO')}
+                            </span>
                           )}
                         </div>
                         <div className="tarea-controles">
-                          {estado !== 'COMPLETADA' && estado !== 'EN_PROGRESO' && (
+                          {estado === 'PENDIENTE' && (
                             <button
                               onClick={() => handleCambiarEstado(tarea.id, 'EN_PROGRESO')}
                               className="btn-mini btn-progreso"
                               title="Comenzar"
-                            >
-                              ▶
-                            </button>
+                            >▶</button>
                           )}
-                          {estado !== 'COMPLETADA' && estado !== 'PENDIENTE' && (
+                          {estado === 'EN_PROGRESO' && (
                             <button
                               onClick={() => handleCambiarEstado(tarea.id, 'COMPLETADA')}
                               className="btn-mini btn-completar"
                               title="Completar"
-                            >
-                              ✓
-                            </button>
+                            >✓</button>
                           )}
                           {estado !== 'PENDIENTE' && (
                             <button
                               onClick={() => handleCambiarEstado(tarea.id, 'PENDIENTE')}
                               className="btn-mini btn-retroceder"
-                              title="Retroceder"
-                            >
-                              ↶
-                            </button>
+                              title="Regresar a Pendiente"
+                            >↶</button>
                           )}
                           <button
                             onClick={() => handleEditar(tarea)}
                             className="btn-mini btn-editar"
                             title="Editar"
-                          >
-                            ✎
-                          </button>
+                          >✎</button>
                           <button
                             onClick={() => handleEliminar(tarea.id)}
                             className="btn-mini btn-eliminar"
                             title="Eliminar"
-                          >
-                            🗑
-                          </button>
+                          >🗑</button>
                         </div>
                       </div>
                     ))
@@ -265,4 +285,3 @@ function Tareas() {
 }
 
 export default Tareas;
-

@@ -13,23 +13,23 @@ const Usuario = sequelize.define(
       type: DataTypes.STRING(100),
       allowNull: false,
       field: 'nombre',
+      validate: {
+        notEmpty: { msg: 'El nombre es obligatorio' },
+      },
     },
     email: {
       type: DataTypes.STRING(100),
       allowNull: false,
       unique: true,
-      validate: { isEmail: true },
+      validate: {
+        isEmail: { msg: 'El email no tiene un formato válido' },
+        notEmpty: { msg: 'El email es obligatorio' },
+      },
     },
     passwordHash: {
       type: DataTypes.STRING(255),
       allowNull: false,
       field: 'contrasena',
-    },
-    role: {
-      type: DataTypes.ENUM('STUDENT', 'TUTOR', 'ADMIN'),
-      allowNull: false,
-      defaultValue: 'STUDENT',
-      field: 'rol',
     },
     phone: {
       type: DataTypes.STRING(20),
