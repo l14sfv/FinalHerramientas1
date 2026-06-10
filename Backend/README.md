@@ -1,6 +1,6 @@
-# Backend - Plataforma de Tutorías
+# Backend - Plataforma de Tareas
 
-API REST desarrollada con **Node.js**, **Express**, **Sequelize** y **MySQL** para soportar una plataforma de tutorías académicas. Gestiona autenticación, materias, tutores y sesiones de tutoría.
+API REST desarrollada con **Node.js**, **Express**, **Sequelize** y **MySQL** para soportar una plataforma de gestión de tareas. Gestiona autenticación de usuarios, creación de tareas, actualización de estado y consulta de tareas propias.
 
 ## Tecnologías utilizadas
 
@@ -16,12 +16,12 @@ API REST desarrollada con **Node.js**, **Express**, **Sequelize** y **MySQL** pa
 - Registro de usuarios.
 - Inicio de sesión con autenticación JWT.
 - Consulta del perfil autenticado.
-- Listado de materias.
-- Consulta de tutores por materia.
-- Visualización del detalle de tutores.
-- Creación de sesiones de tutoría.
-- Consulta de sesiones del usuario autenticado.
-- Actualización del estado de sesiones.
+- Creación de tareas.
+- Listado de tareas propias.
+- Consulta de detalle de tarea.
+- Actualización de tareas.
+- Cambio de estado de tareas.
+- Eliminación de tareas.
 - Endpoint de verificación de estado del sistema.
 
 ## Estructura principal
@@ -51,13 +51,7 @@ Backend/
 El proyecto utiliza una base de datos llamada:
 
 ```sql
-Tutores_db
-```
-
-Puedes crearla manualmente con:
-
-```sql
-CREATE DATABASE Tutores_db
+CREATE DATABASE tareas_db
 CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
 ```
@@ -72,7 +66,7 @@ Crea un archivo `.env` dentro de `Backend/` con una configuración similar a est
 PORT=4000
 DB_HOST=localhost
 DB_PORT=3306
-DB_NAME=Tutores_db
+DB_NAME=tareas_db
 DB_USER=root
 DB_PASSWORD=123456
 JWT_SECRET=clave_super_segura
@@ -122,12 +116,12 @@ La API trabaja con el prefijo:
 | POST | `/auth/register` | No | Registrar usuario |
 | POST | `/auth/login` | No | Iniciar sesión |
 | GET | `/auth/me` | Sí | Obtener perfil autenticado |
-| GET | `/subjects` | No | Listar materias |
-| GET | `/tutors` | No | Listar tutores |
-| GET | `/tutors/:id` | No | Ver detalle de tutor |
-| POST | `/sessions` | Sí | Crear sesión |
-| GET | `/sessions/mine` | Sí | Consultar sesiones propias |
-| PATCH | `/sessions/:id/status` | Sí | Actualizar estado de sesión |
+| GET | `/tasks` | Sí | Listar tareas propias |
+| POST | `/tasks` | Sí | Crear tarea |
+| GET | `/tasks/:id` | Sí | Obtener detalle de tarea |
+| PUT | `/tasks/:id` | Sí | Actualizar tarea |
+| PATCH | `/tasks/:id/status` | Sí | Cambiar estado de tarea |
+| DELETE | `/tasks/:id` | Sí | Eliminar tarea |
 | GET | `/health` | No | Verificar estado del servicio |
 
 ## Modelo de datos
@@ -137,18 +131,16 @@ El backend trabaja con una estructura basada en las siguientes tablas:
 | Tabla | Descripción |
 |---|---|
 | `usuarios` | Información de usuarios registrados |
-| `materias` | Asignaturas disponibles |
-| `tutor_materias` | Relación entre tutores, materias y tarifa |
-| `sesiones` | Registro de sesiones programadas |
+| `tareas` | Información de las tareas creadas por los usuarios |
 
-## Estados de sesión
+## Estados de tarea
 
-Las sesiones manejan los siguientes estados:
+Las tareas manejan los siguientes estados:
 
 - `PENDING`
-- `CONFIRMED`
-- `CANCELLED`
+- `IN_PROGRESS`
 - `COMPLETED`
+- `CANCELLED`
 
 ## Notas de desarrollo
 

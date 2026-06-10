@@ -1,6 +1,6 @@
-# Plataforma de Tutorías
+# Plataforma de Tareas
 
-Aplicación web full stack para gestionar una plataforma de tutorías académicas. Permite registrar usuarios, iniciar sesión, consultar materias, visualizar tutores disponibles, ver tarifas por hora, agendar sesiones y mantener seguimiento de las tutorías programadas. [cite:1]
+Aplicación web full stack para gestionar tareas personales. Permite registrar usuarios, iniciar sesión, crear y modificar tareas, filtrar por prioridad y estado, y mantener un seguimiento claro de las tareas pendientes. [cite:1]
 
 ## Descripción general
 
@@ -36,12 +36,12 @@ FinalHerramientas1/
 - Registro de usuarios. [cite:1]
 - Inicio de sesión con autenticación basada en JWT. [cite:1]
 - Consulta del perfil autenticado. [cite:1]
-- Visualización de materias disponibles. [cite:1]
-- Consulta de tutores por materia. [cite:1]
-- Visualización del detalle de cada tutor y su tarifa. [cite:1]
-- Creación de sesiones de tutoría. [cite:1]
-- Consulta de sesiones registradas por el usuario autenticado. [cite:1]
-- Actualización del estado de una sesión. [cite:1]
+- Creación de tareas. [cite:1]
+- Listado de tareas propias. [cite:1]
+- Consulta de detalle de una tarea. [cite:1]
+- Actualización de tareas. [cite:1]
+- Cambio de estado de tareas. [cite:1]
+- Eliminación de tareas. [cite:1]
 - Contacto rápido por WhatsApp desde la interfaz. [cite:1]
 
 ## Requisitos previos
@@ -59,7 +59,7 @@ Antes de ejecutar el proyecto, se necesita lo siguiente: [cite:1]
 Ejecuta en MySQL:
 
 ```sql
-CREATE DATABASE Tutores_db
+CREATE DATABASE tareas_db
 CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
 ```
@@ -131,7 +131,7 @@ http://localhost:5173
 | `PORT` | Puerto del servidor | `4000` [cite:1] |
 | `DB_HOST` | Host de MySQL | `localhost` [cite:1] |
 | `DB_PORT` | Puerto de MySQL | `3306` [cite:1] |
-| `DB_NAME` | Nombre de la base de datos | `Tutores_db` [cite:1] |
+| `DB_NAME` | Nombre de la base de datos | `tareas_db` [cite:1] |
 | `DB_USER` | Usuario de MySQL | `root` [cite:1] |
 | `DB_PASSWORD` | Contraseña de MySQL | `123456` [cite:1] |
 | `JWT_SECRET` | Clave secreta para los tokens | `clave_super_segura` [cite:1] |
@@ -175,30 +175,35 @@ La API utiliza el prefijo `/api`. [cite:1]
 | POST | `/auth/register` | No | Registrar un usuario [cite:1] |
 | POST | `/auth/login` | No | Iniciar sesión y obtener token JWT [cite:1] |
 | GET | `/auth/me` | Sí | Obtener perfil del usuario autenticado [cite:1] |
-| GET | `/subjects` | No | Listar materias [cite:1] |
-| GET | `/tutors` | No | Listar tutores, con filtro opcional por materia [cite:1] |
-| GET | `/tutors/:id` | No | Obtener detalle de un tutor [cite:1] |
-| POST | `/sessions` | Sí | Crear una sesión de tutoría [cite:1] |
-| GET | `/sessions/mine` | Sí | Obtener las sesiones del usuario autenticado [cite:1] |
-| PATCH | `/sessions/:id/status` | Sí | Actualizar el estado de una sesión [cite:1] |
+| GET | `/tasks` | Sí | Listar tareas del usuario autenticado [cite:1] |
+| POST | `/tasks` | Sí | Crear una nueva tarea [cite:1] |
+| GET | `/tasks/:id` | Sí | Obtener detalle de una tarea [cite:1] |
+| PUT | `/tasks/:id` | Sí | Actualizar una tarea [cite:1] |
+| PATCH | `/tasks/:id/status` | Sí | Cambiar el estado de una tarea [cite:1] |
+| DELETE | `/tasks/:id` | Sí | Eliminar una tarea [cite:1] |
 | GET | `/health` | No | Verificar el estado del sistema [cite:1] |
 
 ## Flujo de uso
 
 1. El usuario se registra en la plataforma. [cite:1]
-2. Luego inicia sesión y obtiene acceso autenticado. [cite:1]
-3. Puede consultar materias y tutores disponibles. [cite:1]
-4. Selecciona un tutor según su necesidad y revisa la tarifa por hora. [cite:1]
-5. Crea una sesión de tutoría desde la aplicación. [cite:1]
-6. Posteriormente puede consultar sus sesiones y hacer seguimiento a su estado. [cite:1]
+2. Inicia sesión y obtiene acceso autenticado. [cite:1]
+3. Crea una tarea con título, descripción, prioridad y fecha de vencimiento. [cite:1]
+4. Visualiza sus tareas y filtra por estado o prioridad. [cite:1]
+5. Actualiza la información o el estado de sus tareas. [cite:1]
+6. Elimina tareas completadas o no deseadas según necesite. [cite:1]
 
-## Estados de sesión
+## Estados de tarea
 
-Las sesiones manejan los siguientes estados: [cite:1]
+Las tareas manejan los siguientes estados: [cite:1]
 
 - `PENDING` [cite:1]
-- `CONFIRMED` [cite:1]
+- `IN_PROGRESS` [cite:1]
+- `COMPLETED` [cite:1]
 - `CANCELLED` [cite:1]
+
+## Modelo de datos
+
+El repositorio incluye un archivo `Tablas.sql` para la creación de la base de datos. Además, la documentación pública del proyecto indica el uso de tablas como `usuarios` y `tareas`. [cite:1]- `CANCELLED` [cite:1]
 - `COMPLETED` [cite:1]
 
 ## Estructura interna

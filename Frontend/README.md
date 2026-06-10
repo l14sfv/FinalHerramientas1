@@ -1,6 +1,6 @@
-# Frontend - Plataforma de Tutorías
+# Frontend - Plataforma de Tareas
 
-Aplicación web desarrollada con **React** y **Vite** para la gestión de una plataforma de tutorías académicas. Permite a los usuarios registrarse, iniciar sesión, consultar materias, visualizar tutores disponibles, agendar sesiones y hacer seguimiento a sus tutorías. 
+Aplicación web desarrollada con **React** y **Vite** para la gestión de tareas personales. Permite a los usuarios registrarse, iniciar sesión, crear tareas, actualizar su estado, filtrar por prioridad y ver el listado de tareas activas.
 
 ## Tecnologías utilizadas
 
@@ -15,12 +15,11 @@ Aplicación web desarrollada con **React** y **Vite** para la gestión de una pl
 - Registro de usuarios.
 - Inicio de sesión.
 - Consulta del perfil autenticado.
-- Visualización de materias.
-- Consulta de tutores por materia.
-- Visualización del detalle de un tutor.
-- Creación de sesiones.
-- Consulta de sesiones registradas.
-- Actualización visual del estado de sesiones.
+- Visualización de tareas propias.
+- Creación de tareas.
+- Edición de tareas.
+- Cambios de estado de tareas.
+- Eliminación de tareas.
 - Integración de contacto por WhatsApp.
 
 ## Estructura principal
@@ -97,11 +96,10 @@ Por eso, para que todas las funcionalidades trabajen correctamente, el backend d
 
 1. El usuario accede a la aplicación.
 2. Puede registrarse o iniciar sesión.
-3. Consulta las materias disponibles.
-4. Visualiza los tutores relacionados con una materia.
-5. Revisa el detalle del tutor y su tarifa.
-6. Agenda una sesión.
-7. Consulta el historial o listado de sesiones creadas.
+3. Crea una tarea.
+4. Consulta el listado de tareas propias.
+5. Actualiza el estado o los detalles de una tarea.
+6. Elimina tareas completadas o no deseadas.
 
 ## Notas de desarrollo
 
